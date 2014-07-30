@@ -23,21 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 #include "SimpleTimer.h"
 
-
-// Select time function:
-//static inline unsigned long elapsed() { return micros(); }
 static inline unsigned long elapsed() { return millis(); }
-
 
 SimpleTimer::SimpleTimer() {
     unsigned long current_millis = elapsed();
 
     for (int i = 0; i < MAX_TIMERS; i++) {
         enabled[i] = false;
-        callbacks[i] = 0;                   // if the callback pointer is zero, the slot is free, i.e. doesn't "contain" any timer
+        callbacks[i] = 0; 
+        vcallbacks[i] = 0;
+        // if the callback pointer is zero, the slot is free, i.e. doesn't "contain" any timer
         prev_millis[i] = current_millis;
         numRuns[i] = 0;
     }
@@ -47,26 +44,18 @@ SimpleTimer::SimpleTimer() {
 
 
 void SimpleTimer::run() {
-    int i;
-    unsigned long current_millis;
+    unsigned long current_millis = elapsed();
 
-    // get current time
-    current_millis = elapsed();
-
-    for (i = 0; i < MAX_TIMERS; i++) {
+    for (int i = 0; i < MAX_TIMERS; i++) {
 
         toBeCalled[i] = DEFCALL_DONTRUN;
 
         // no callback == no timer, i.e. jump over empty slots
-        if (callbacks[i]) {
-
-            // is it time to process this timer ?
-            // see http://arduino.cc/forum/index.php/topic,124048.msg932592.html#msg932592
+        if (callbacks[i] || vcallbacks[i] ) {
 
             if (current_millis - prev_millis[i] >= delays[i]) {
 
                 // update time
-                //prev_millis[i] = current_millis;
                 prev_millis[i] += delays[i];
 
                 // check if the timer callback has to be executed
@@ -86,13 +75,19 @@ void SimpleTimer::run() {
                             toBeCalled[i] = DEFCALL_RUNANDDEL;
                         }
                     }
+                    // NEW is this a variable timer
+					else if (maxNumRuns[i] == RUN_VARIABLE) {
+                        toBeCalled[i] = DEFCALL_RUNVAR;
+                        numRuns[i]++;
+					}
                 }
             }
         }
     }
 
-    for (i = 0; i < MAX_TIMERS; i++) {
+    for (int i = 0; i < MAX_TIMERS; i++) {
         switch(toBeCalled[i]) {
+
             case DEFCALL_DONTRUN:
                 break;
 
@@ -104,6 +99,13 @@ void SimpleTimer::run() {
                 (*callbacks[i])();
                 deleteTimer(i);
                 break;
+                
+            // NEW
+            case DEFCALL_RUNVAR:
+            	// Call and set new dealy
+            	delays[i] = (*vcallbacks[i])( numRuns[i] );
+            	if (delays[i] == 0) deleteTimer(i);
+            	break;
         }
     }
 }
@@ -121,7 +123,7 @@ int SimpleTimer::findFirstFreeSlot() {
 
     // return the first slot with no callback (i.e. free)
     for (i = 0; i < MAX_TIMERS; i++) {
-        if (callbacks[i] == 0) {
+        if (callbacks[i] == 0 && vcallbacks[i] == 0) {
             return i;
         }
     }
@@ -130,16 +132,34 @@ int SimpleTimer::findFirstFreeSlot() {
     return -1;
 }
 
+// NEW
+int SimpleTimer::setVariableTimer(variable_callback f) {
 
-int SimpleTimer::setTimer(long d, timer_callback f, int n) {
-    int freeTimer;
-
-    freeTimer = findFirstFreeSlot();
-    if (freeTimer < 0) {
+    int freeTimer = findFirstFreeSlot();
+    if (freeTimer < 0 || f == NULL) {
         return -1;
     }
 
-    if (f == NULL) {
+	// actually calls the function passing 0, the return value
+	// is used to setup the first delay.
+    delays[freeTimer] = (*f)(0); 
+    vcallbacks[freeTimer] = f;
+    maxNumRuns[freeTimer] = RUN_VARIABLE;
+    enabled[freeTimer] = true;
+    prev_millis[freeTimer] = elapsed();
+
+    numTimers++;
+
+	// If for some reason the first call returns a zero immediately delete
+	if (delays[freeTimer] == 0) deleteTimer(freeTimer);
+
+    return freeTimer;
+}
+
+int SimpleTimer::setTimer(long d, timer_callback f, int n) {
+
+    int freeTimer = findFirstFreeSlot();
+    if (freeTimer < 0 || f == NULL) {
         return -1;
     }
 
@@ -166,19 +186,17 @@ int SimpleTimer::setTimeout(long d, timer_callback f) {
 
 
 void SimpleTimer::deleteTimer(int timerId) {
-    if (timerId >= MAX_TIMERS) {
-        return;
-    }
 
     // nothing to delete if no timers are in use
-    if (numTimers == 0) {
+    if (timerId >= MAX_TIMERS || numTimers == 0) {
         return;
     }
 
     // don't decrease the number of timers if the
     // specified slot is already empty
-    if (callbacks[timerId] != NULL) {
+    if (callbacks[timerId] != NULL || vcallbacks[timerId] != NULL) {
         callbacks[timerId] = 0;
+        vcallbacks[timerId] = 0;
         enabled[timerId] = false;
         delays[timerId] = 0;
         numRuns[timerId] = 0;
@@ -232,9 +250,4 @@ void SimpleTimer::toggle(int numTimer) {
     }
 
     enabled[numTimer] = !enabled[numTimer];
-}
-
-
-int SimpleTimer::getNumTimers() {
-    return numTimers;
 }

@@ -24,7 +24,6 @@
  *
  */
 
-
 #ifndef SIMPLETIMER_H
 #define SIMPLETIMER_H
 
@@ -34,7 +33,12 @@
 #include <WProgram.h>
 #endif
 
+// normal no argument callback function
 typedef void (*timer_callback)(void);
+
+// variable timer callback function, passing a number of calls as parameter
+// the return value, determines the amount of time for next invocation, 0 = delete
+typedef long (*variable_callback)(int);
 
 class SimpleTimer {
 
@@ -43,6 +47,7 @@ public:
     const static int MAX_TIMERS = 10;
 
     // setTimer() constants
+    const static int RUN_VARIABLE = -1; // NEW
     const static int RUN_FOREVER = 0;
     const static int RUN_ONCE = 1;
 
@@ -61,6 +66,10 @@ public:
     // call function f every d milliseconds for n times
     int setTimer(long d, timer_callback f, int n);
 
+    // NEW function to register a variable timer
+    // that runs on a schedule determined by the callback function
+    int setVariableTimer(variable_callback f);
+
     // destroy the specified timer
     void deleteTimer(int numTimer);
 
@@ -76,12 +85,11 @@ public:
     // disables the specified timer
     void disable(int numTimer);
 
-    // enables the specified timer if it's currently disabled,
-    // and vice-versa
+    // enables the specified timer if it's currently disabled, and vice-versa
     void toggle(int numTimer);
 
     // returns the number of used timers
-    int getNumTimers();
+    int getNumTimers() { return numTimers; };
 
     // returns the number of available timers
     int getNumAvailableTimers() { return MAX_TIMERS - numTimers; };
@@ -91,16 +99,20 @@ private:
     const static int DEFCALL_DONTRUN = 0;       // don't call the callback function
     const static int DEFCALL_RUNONLY = 1;       // call the callback function but don't delete the timer
     const static int DEFCALL_RUNANDDEL = 2;      // call the callback function and delete the timer
+	const static int DEFCALL_RUNVAR = 3;		// NEW 
 
     // find the first available slot
     int findFirstFreeSlot();
-
+    
     // value returned by the millis() function
     // in the previous run() call
     unsigned long prev_millis[MAX_TIMERS];
 
     // pointers to the callback functions
     timer_callback callbacks[MAX_TIMERS];
+
+    // NEW pointers to the variable callback functions
+    variable_callback vcallbacks[MAX_TIMERS];
 
     // delay values
     long delays[MAX_TIMERS];
@@ -122,3 +134,5 @@ private:
 };
 
 #endif
+
+

@@ -1,0 +1,17 @@
+SimpleTimer	KEYWORD1
+
+setTimer	KEYWORD2
+setInterval	KEYWORD2
+setTimeout	KEYWORD2
+enable	KEYWORD2
+disable	KEYWORD2
+toggle	KEYWORD2
+restartTimer	KEYWORD2
+deleteTimer	KEYWORD2
+getNumTimers	KEYWORD2
+
+NO_ENTER	LITERAL1
+NO_UPDATE	LITERAL1
+NO_EXIT	LITERAL1
+
+
