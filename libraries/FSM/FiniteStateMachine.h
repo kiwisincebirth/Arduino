@@ -1,12 +1,27 @@
 /*
 ||
 || @file FiniteStateMachine.h
-|| @version 1.7
+|| @version 1.8
 || @author Alexander Brevig
 || @contact alexanderbrevig@gmail.com
 ||
 || @description
 || | Provide an easy way of making finite state machines
+|| | 
+|| | Version 1.8 introduces these changes :-
+|| | * Added Comparison Operator for State object allowing for direct == comparison
+|| | * Added a FSM property LastState (getLastState) to track prior state state, 
+|| |   typically used during an Enter callback function for conditional logic.
+|| | * Added a method to get NextState, typically called from an Exit callback function
+|| |   to allow for conditional functionality based on next state
+|| | 
+|| | Internal Changes include :-
+|| | * Definition of callback function is now as typedefs
+|| | * Changed the reset of "Time In Current State" counter to coincide with 
+|| |   calling the Enter callback Function. Previously it was being reset before
+|| |   the exit callback function was being called
+|| | * Constructors of State, now use proper C++ initialisation.
+|| | 
 || #
 ||
 || @license
@@ -59,22 +74,41 @@ terry@yourduino.com
 
 #define FSM FiniteStateMachine
 
+//forward declarations
+class State;
+
+// definitions of callback for Enter and Exit, the parameter is 
+// the state we transition away from, or state going to.
+
+//typedef void (*fsmTransCallback)(State *state);
+
+// definitions of callback for Update, milliseconds in the state
+//
+typedef void (*fsmUpdateCallback)(unsigned long milliseconds);
+
+// definitions of callback for Update, milliseconds in the state
+
+typedef void (*fsmCallback)();
+
 //define the functionality of the states
 class State {
+
 	public:
-		State( void (*updateFunction)() );
-		State( void (*enterFunction)(), void (*updateFunction)(), void (*exitFunction)() );
-		//State( byte newId, void (*enterFunction)(), void (*updateFunction)(), void (*exitFunction)() );
+		State( fsmCallback );
+		State( fsmCallback, fsmCallback, fsmCallback );
 		
-		//void getId();
-		void enter();
-		void update();
-		void exit();
+		bool operator==(const State &other) const;
+		bool operator!=(const State &other) const;
+		
+		void enter(); // we are entering from a prior state.
+		void update(); // update in state, how long been in there. 
+		void exit(); // we are leaving to go to a new state 
+		
 	private:
-		//byte id;
-		void (*userEnter)();
-		void (*userUpdate)();
-		void (*userExit)();
+		fsmCallback userEnter;
+		fsmCallback userUpdate;
+		fsmCallback userExit;
+		
 };
 
 //define the finite state machine functionality
@@ -86,14 +120,19 @@ class FiniteStateMachine {
 		FiniteStateMachine& transitionTo( State& state );
 		FiniteStateMachine& immediateTransitionTo( State& state );
 		
+		State& getLastState();
 		State& getCurrentState();
+		State& getNextState();
 		boolean isInState( State &state ) const;
+		boolean wasInState( State &state ) const;
+		boolean willBeInState( State &state ) const;
 		
 		unsigned long timeInCurrentState();
 		
 	private:
 		bool 	needToTriggerEnter;
-		State* 	currentState;
+		State*	lastState;
+		State*	currentState;
 		State* 	nextState;
 		unsigned long stateChangeTime;
 };
@@ -102,6 +141,7 @@ class FiniteStateMachine {
 
 /*
 || @changelog
+|| | 1.8 2013-10-10 - Mark Pruden : Callback enhancements, see above.
 || | 1.7 2010-03-08- Alexander Brevig : Fixed a bug, constructor ran update, thanks to René Pressé
 || | 1.6 2010-03-08- Alexander Brevig : Added timeInCurrentState() , requested by sendhb
 || | 1.5 2009-11-29- Alexander Brevig : Fixed a bug, introduced by the below fix, thanks to Jon Hylands again...

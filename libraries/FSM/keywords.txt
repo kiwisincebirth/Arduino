@@ -4,8 +4,12 @@ State	KEYWORD1
 
 transitionTo	KEYWORD2
 immediateTransitionTo	KEYWORD2
+getLastState	KEYWORD2
 getCurrentState	KEYWORD2
+getNextState	KEYWORD2
+wasInState	KEYWORD2
 isInState	KEYWORD2
+willBeInState	KEYWORD2
 timeInCurrentState	KEYWORD2
 enter	KEYWORD2
 update	KEYWORD2

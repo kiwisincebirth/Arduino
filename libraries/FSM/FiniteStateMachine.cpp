@@ -30,17 +30,11 @@
 #include "FiniteStateMachine.h" 
 
 //FINITE STATE
-State::State( void (*updateFunction)() ){
-	userEnter = 0;
-	userUpdate = updateFunction;
-	userExit = 0;
-}
+State::State( fsmCallback update )
+	: userEnter(0), userUpdate(update), userExit(0) { }
 
-State::State( void (*enterFunction)(), void (*updateFunction)(), void (*exitFunction)() ){
-	userEnter = enterFunction;
-	userUpdate = updateFunction;
-	userExit = exitFunction;
-}
+State::State( fsmCallback enter, fsmCallback update, fsmCallback exit )
+	: userEnter(enter), userUpdate(update), userExit(exit) { }
 
 //what to do when entering this state
 void State::enter(){
@@ -62,21 +56,31 @@ void State::exit(){
 		userExit();
 	}
 }
-//END FINITE STATE
 
+bool State::operator==(const State &other) const {
+	return (
+		this->userEnter == other.userEnter &&
+		this->userUpdate == other.userUpdate &&
+		this->userExit == other.userExit );
+}
+
+bool State::operator!=(const State &other) const {
+	return !(*this == other);
+}
+    
+//END FINITE STATE 
 
 //FINITE STATE MACHINE
-FiniteStateMachine::FiniteStateMachine(State& current){
-	needToTriggerEnter = true;
-	currentState = nextState = &current;
-	stateChangeTime = 0;
-}
+
+FiniteStateMachine::FiniteStateMachine(State& state)
+	: needToTriggerEnter(true), currentState(&state), nextState(&state) {}
 
 FiniteStateMachine& FiniteStateMachine::update() {
 	//simulate a transition to the first state
 	//this only happens the first time update is called
 	if (needToTriggerEnter) { 
-		currentState->enter();
+		stateChangeTime = millis(); // Reset The Time to coincide with call to ENTER
+		currentState->enter(); 
 		needToTriggerEnter = false;
 	} else {
 		if (currentState != nextState){
@@ -89,16 +93,24 @@ FiniteStateMachine& FiniteStateMachine::update() {
 
 FiniteStateMachine& FiniteStateMachine::transitionTo(State& state){
 	nextState = &state;
-	stateChangeTime = millis();
+	// Want the Exit callback function to get full time in current state
+	// stateChangeTime = millis(); 
 	return *this;
 }
 
 FiniteStateMachine& FiniteStateMachine::immediateTransitionTo(State& state){
+	nextState = &state; // When we Call Exit, want to ensure next state is set
 	currentState->exit();
-	currentState = nextState = &state;
+	lastState = currentState;
+	currentState = nextState;
+	stateChangeTime = millis(); // Reset The Time to coincide with call to ENTER
 	currentState->enter();
-	stateChangeTime = millis();
 	return *this;
+}
+
+//return the last state
+State& FiniteStateMachine::getLastState() {
+	return *lastState;
 }
 
 //return the current state
@@ -106,16 +118,26 @@ State& FiniteStateMachine::getCurrentState() {
 	return *currentState;
 }
 
+//return the next state
+State& FiniteStateMachine::getNextState() {
+	return *nextState;
+}
+
 //check if state is equal to the currentState
 boolean FiniteStateMachine::isInState( State &state ) const {
-	if (&state == currentState) {
-		return true;
-	} else {
-		return false;
-	}
+	return &state == currentState;
+}
+
+boolean FiniteStateMachine::wasInState( State &state ) const {
+	return &state == lastState;
+}
+
+boolean FiniteStateMachine::willBeInState( State &state ) const {
+	return &state == nextState;
 }
 
 unsigned long FiniteStateMachine::timeInCurrentState() { 
-	millis() - stateChangeTime; 
+	return millis() - stateChangeTime; 
 }
+
 //END FINITE STATE MACHINE
