@@ -1,5 +1,5 @@
-Finite State Machine Arduino Library
-====================================
+Simple Timer Arduino Library
+============================
 
 This is (yet another) simple library to launch timed actions.
 
