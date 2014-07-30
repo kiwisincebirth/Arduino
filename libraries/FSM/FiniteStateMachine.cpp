@@ -1,7 +1,7 @@
 /*
 ||
 || @file FiniteStateMachine.cpp
-|| @version 1.7
+|| @version 2.1 - by Mark Pruden
 || @author Alexander Brevig
 || @contact alexanderbrevig@gmail.com
 ||
@@ -30,6 +30,7 @@
 #include "FiniteStateMachine.h" 
 
 //FINITE STATE
+
 State::State( fsmCallback update )
 	: userEnter(0), userUpdate(update), userExit(0) { }
 
