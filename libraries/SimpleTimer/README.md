@@ -12,6 +12,7 @@ For applications where non-strict timing is enough, not using interrupts avoids 
 This library is based on http://playground.arduino.cc/Code/SimpleTimer and adds the following function
 
 int setVariableTimer(timer_callback f)
+--------------------------------------
 
 Call the function f repeatedly until signalled to stop. The callback function must be declared as long f(int). The integer argument to the callback function is the number of repetitions that has occurred, and the return value (in milliseconds) determines the length of time before the next callback function call. Note the first call to the callback function occurs immediately with an argument of 0. When the callback function returns a value of 0, the interval is deleted, therefore the value timerId is no longer valid.
 
@@ -36,6 +37,7 @@ timerId = timer.setTimer(delayThenPressButton);
 
 See
 ===
+
 http://playground.arduino.cc/code/FiniteStateMachine
 
 Version History
