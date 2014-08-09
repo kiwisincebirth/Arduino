@@ -39,9 +39,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Serial.print(' ');    \
     Serial.print(__PRETTY_FUNCTION__); \
     Serial.print(' ');      \
+    Serial.println(str);
+#define DEBUG_PRINTF(str)    \
+    Serial.print(millis());     \
+    Serial.print(' ');      \
+    Serial.print(__FILE__);     \
+    Serial.print(':');      \
+    Serial.print(__LINE__);     \
+    Serial.print(' ');    \
+    Serial.print(__PRETTY_FUNCTION__); \
+    Serial.print(' ');      \
     Serial.println(F(str));
 #else
 #define DEBUG_PRINT(str)
+#define DEBUG_PRINTF(str)
 #endif
 
 #endif
