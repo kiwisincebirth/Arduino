@@ -27,10 +27,10 @@
  * 
  * PWM frequencies are tied together in pairs of pins. If one in a
  * pair is changed, the other is also changed to match:
- *   - Pins 3 and 11 are paired on timer0
- *   - Pins 9 and 10 are paired on timer1
+ *   - Pins 3 and 11 are paired on timer0 (Default prescale=64, Freq=977Hz)
+ *   - Pins 9 and 10 are paired on timer1 (Default prescale=64, Freq=490Hz)
+ *   - Pins 5 is exclusivly     on timer3 (Default prescale=64, Freq=490Hz)
  *   - Pins 6 and 13 are paired on timer4 
- *   - Pins 5 is exclusivly on timer3
  * 
  * Note: Pins 3 and 11 operate on Timer 0 changes this pins will 
  * affect the user of the main time millis() functions
@@ -94,9 +94,9 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale)
  * 
  * PWM frequencies are tied together in pairs of pins. If one in a
  * pair is changed, the other is also changed to match:
- *   - Pins 5 and 6 are paired on timer0
- *   - Pins 9 and 10 are paired on timer1
- *   - Pins 3 and 11 are paired on timer2
+ *   - Pins 5 and 6 are paired on timer0 (Default prescale=64, Freq=977Hz)
+ *   - Pins 9 and 10 are paired on timer1 (Default prescale=64, Freq=490Hz)
+ *   - Pins 3 and 11 are paired on timer2 (Default prescale=64, Freq=490Hz)
  * 
  * Note that this function will have side effects on anything else
  * that uses timers:
