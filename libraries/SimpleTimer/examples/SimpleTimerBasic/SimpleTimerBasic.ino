@@ -60,6 +60,20 @@ void printDigits(int digits) {
   Serial.print(digits);
 }
  
+long delayThenPressButton( int callNumber ) {
+	if ( callNumber==0 ) {
+		return 10000;
+	} else if ( callNumber ==1 ) {
+		pinMode(10,OUTPUT);
+		digitalWrite(10,HIGH);
+		return 300;
+	} else if ( callNumber ==2 ) {
+		digitalWrite(10,LOW);
+		pinMode(10,INPUT);
+		return 0;
+	}	
+}
+ 
 void setup() {
   Serial.begin(9600);
  
@@ -67,7 +81,9 @@ void setup() {
   Serial.println("SimpleTimer Example");
   Serial.println("One timer is triggered every 15 seconds");
   Serial.println("Another timer is set to trigger only once after 10 seconds");
+  Serial.println("Third Timer Runs Once a second");
   Serial.println("Another timer is set to trigger 10 times");
+  Serial.println("Last Timer triggers a single output for 300ms after 10 second delay");
   Serial.println();
  
   // timed actions setup
@@ -75,6 +91,7 @@ void setup() {
   timer.setTimeout(10000, OnceOnlyTask);
   timer.setInterval(1000, DigitalClockDisplay);
   timer.setTimer(1200, TenTimesTask, 10);
+  timer.setVariableTimer(delayThenPressButton);
 }
  
 void loop() {
