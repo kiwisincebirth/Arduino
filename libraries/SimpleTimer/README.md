@@ -21,24 +21,36 @@ Example
 
 The following example shows the use of this to simulate a momentary output pulse of 300ms that occurs 10 seconds after the timer is established.
 
-long delayThenPressButton( int callNumber ) {
+```
+#include <SimpleTimer.h>
 
+SimpleTimer timer;
+
+void setup() {
+	timer.setVariableTimer(delayThenPressButton);
+}
+
+void loop() {
+	timer.run();
+}
+
+long delayThenPressButton( int callNumber ) {
 	if ( callNumber==0 ) {
 		return 10000;
 	} else if ( callNumber ==1 ) {
-		digitalWrite(PIN,HIGH);
+		pinMode(10,OUTPUT);
+		digitalWrite(10,HIGH);
 		return 300;
 	} else if ( callNumber ==2 ) {
-		digitalWrite(PIN,LOW);
+		digitalWrite(10,LOW);
+		pinMode(10,INPUT);
 		return 0;
 	}	
 }
-timerId = timer.setTimer(delayThenPressButton);
+```
 
-See
-===
-
-http://playground.arduino.cc/code/FiniteStateMachine
+See Also
+========
 
 Version History
 ===============
