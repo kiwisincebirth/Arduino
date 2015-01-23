@@ -18,27 +18,31 @@
  * Sets the Prescaler (Divisor) for a given PWM pin. The resulting frequency 
  * is equal to the base frequency divided by the given divisor:
  *   - Base frequencies:
- *      o The base frequency for pins 3, and 11 is 64,500 Hz.
+ *      o The base frequency for pins 3, and 11    is 64,500 Hz.
  *      o The base frequency for pins 5, 9, and 10 is 31,250 Hz.
- *      o The base frequency for pins 6 and 13 is 125,000 Hz.
+ *      o The base frequency for pins 6 and 13     is 125,000 Hz.
  *   - Divisors:
  *      o The divisors available on pins 3, 5, 9, 10 and 11 are: 1, 8, 64, 256, and 1024.
  *      o The divisors available on pins 6 and 13 are all powers of two between 1 and 16384
  * 
  * PWM frequencies are tied together in pairs of pins. If one in a
  * pair is changed, the other is also changed to match:
- *   - Pins 3 and 11 are paired on timer0 (Default prescale=64, Freq=977Hz)
- *   - Pins 9 and 10 are paired on timer1 (Default prescale=64, Freq=490Hz)
- *   - Pins 5 is exclusivly     on timer3 (Default prescale=64, Freq=490Hz)
- *   - Pins 6 and 13 are paired on timer4 
+ *   - Pins 3 and 11 are paired on timer0  8bit (Default prescale=64, Freq=977Hz)
+ *   - Pins 9 and 10 are paired on timer1 16bit (Default prescale=64, Freq=490Hz)
+ *   - Pins 5 is exclusivly     on timer3 16bit (Default prescale=64, Freq=490Hz)
+ *   - Pins 6 and 13 are paired on timer4 10bit
  * 
  * Note: Pins 3 and 11 operate on Timer 0 changes this pins will 
  * affect the user of the main time millis() functions
+ * 
+ * Thanks to MacTester of the TonyMacX86 forums for his work in defining 
+ * the timings and testing this library
  */ 
 void setPWMPrescaler(uint8_t pin, uint8_t prescale) 
 { 
-  if(pin == 3 || pin == 5 || pin == 9 || pin == 10 || pin == 11) { 
-    byte mode;
+  byte mode;
+  
+  if(pin==3 || pin==5 || pin==9 || pin==10 || pin==11) { 
     switch(prescale) {
       case 1: mode = 0x01; break;
       case 8: mode = 0x02; break;
@@ -47,15 +51,8 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale)
       case 1024: mode = 0x05; break;
       default: return;
     }
-    if(pin == 3 || pin == 11) {
-      TCCR0B = TCCR1B & 0b11111000 | mode;
-    } else if (pin == 9 || pin == 10) {
-      TCCR1B = TCCR1B & 0b11111000 | mode;
-    } else {
-      TCCR3B = TCCR3B & 0b11111000 | mode;
-    }
-  } else if(pin == 3 || pin == 11) {
-    byte mode; 
+    
+  } else if(pin==6 || pin==13) {
     switch(prescale) {
       case 1: mode = 0x01; break;
       case 2: mode = 0x02; break;
@@ -74,6 +71,17 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale)
       case 16384: mode = 0x0F; break;
       default: return;
     }
+  } else {
+    return;
+  }
+  
+  if(pin==3 || pin==11) {
+    TCCR0B = TCCR1B & 0b11111000 | mode;
+  } else if (pin==9 || pin==10) {
+    TCCR1B = TCCR1B & 0b11111000 | mode;
+  } else if (pin==5) {
+    TCCR3B = TCCR3B & 0b11111000 | mode;
+  } else {
     TCCR4B = TCCR4B & 0b11110000 | mode;
   }
 }
@@ -87,20 +95,20 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale)
  * is equal to the base frequency divided by the given divisor:
  *   - Base frequencies:
  *      o The base frequency for pins 3, 9, 10, and 11 is 31250 Hz.
- *      o The base frequency for pins 5 and 6 is 62500 Hz.
+ *      o The base frequency for pins 5 and 6          is 62500 Hz.
  *   - Divisors:
  *      o The divisors available on pins 5, 6, 9 and 10 are: 1, 8, 64, 256, and 1024.
  *      o The divisors available on pins 3 and 11 are: 1, 8, 32, 64, 128, 256, and 1024.
  * 
  * PWM frequencies are tied together in pairs of pins. If one in a
  * pair is changed, the other is also changed to match:
- *   - Pins 5 and 6 are paired on timer0 (Default prescale=64, Freq=977Hz)
+ *   - Pins 5 and 6  are paired on timer0 (Default prescale=64, Freq=977Hz)
  *   - Pins 9 and 10 are paired on timer1 (Default prescale=64, Freq=490Hz)
  *   - Pins 3 and 11 are paired on timer2 (Default prescale=64, Freq=490Hz)
  * 
  * Note that this function will have side effects on anything else
  * that uses timers:
- *   - Changes on pins 3, 5, 6, or 11 may cause the delay() and
+ *   - Changes on pins 5, or 6 may cause the delay() and
  *     millis() functions to stop working. Other timing-related
  *     functions may also be affected.
  *   - Changes on pins 9 or 10 will cause the Servo library to function
@@ -112,7 +120,9 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale)
  *   http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1235060559/0#4
  */
 void setPWMPrescaler(uint8_t pin, uint8_t prescale) {
+  
   byte mode;
+  
   if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
     switch(prescale) {
       case 1: mode = 0x01; break;
@@ -122,11 +132,7 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale) {
       case 1024: mode = 0x05; break;
       default: return;
     }
-    if(pin == 5 || pin == 6) {
-      TCCR0B = TCCR0B & 0b11111000 | mode;
-    } else {
-      TCCR1B = TCCR1B & 0b11111000 | mode;
-    }
+    
   } else if(pin == 3 || pin == 11) {
     switch(prescale) {
       case 1: mode = 0x01; break;
@@ -138,6 +144,15 @@ void setPWMPrescaler(uint8_t pin, uint8_t prescale) {
       case 1024: mode = 0x7; break;
       default: return;
     }
+  } else {
+    return;
+  }
+  
+  if(pin==5 || pin==6) {
+    TCCR0B = TCCR0B & 0b11111000 | mode;
+  } else if (pin==9 || pin==10) {
+    TCCR1B = TCCR1B & 0b11111000 | mode;
+  } else {
     TCCR2B = TCCR2B & 0b11111000 | mode;
   }
 }
