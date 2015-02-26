@@ -8,14 +8,14 @@ This code is based on Arduino 1.6.0
 
 **Usage:** There are two changes you need to make in your code
 
-1. Include W5100.h
+1. Include W5100.h Typically done when the Include of Ethernet is defined.
 
 ```
   #include <Ethernet.h>
   #include <utility/W5100.h> // <- Add this line of code
 ```
 
-2. Call select(pinNumber) prior to calling the init() method.
+2. Call select(pinNumber) prior to calling the Ethernet begin() method.
 
 ```
   W5100.select(8); // <- Specify the SS Pin to use for Ethernet
