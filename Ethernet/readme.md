@@ -10,17 +10,17 @@ This code is based on Arduino 1.6.0
 
 1. Include W5100.h
 
-'''
-#include <Ethernet.h>
-#include <utility/W5100.h> // <- Add this line of code
-'''
+```
+  #include <Ethernet.h>
+  #include <utility/W5100.h> // <- Add this line of code
+```
 
 2. Call select(pinNumber) prior to calling the init() method.
 
-'''
-W5100.select(8); // <- Specify the SS Pin to use for Ethernet
-Ethernet.begin(mac,ipAddress); 
-'''
+```
+  W5100.select(8); // <- Specify the SS Pin to use for Ethernet
+  Ethernet.begin(mac,ipAddress); 
+```
 
 Thats All.
 
