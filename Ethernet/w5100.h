@@ -200,6 +200,7 @@ public:
   // W5100 Registers
   // ---------------
 private:
+
   static uint8_t write(uint16_t _addr, uint8_t _data);
   static uint16_t write(uint16_t addr, const uint8_t *buf, uint16_t len);
   static uint8_t read(uint16_t addr);
