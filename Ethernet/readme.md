@@ -24,6 +24,8 @@ This code is based on Arduino 1.6.0
 
 Thats All.
 
+**Credits:** http://forum.arduino.cc/index.php?topic=217423.0
+
 
 
 
